@@ -3,6 +3,67 @@
 abstract class EEHelper
 {
 	protected static $locations = array();
+	protected static $ipKeys = array(
+		'HTTP_CLIENT_IP',
+		'HTTP_X_FORWARDED_FOR',
+		'HTTP_X_FORWARDED',
+		'HTTP_X_CLUSTER_CLIENT_IP',
+		'HTTP_FORWARDED_FOR',
+		'HTTP_FORWARDED',
+		'REMOTE_ADDR'
+	);
+
+	/**
+	 * When on a dev site, you don't want you site being indexed.
+	 *
+	 * @return  string  NoIndex meta string if on dev server.
+	 */
+	public static function noindex()
+	{
+		$meta = '';
+
+		if ($_SERVER['EE_ENV'] === 'development')
+		{
+			$meta = '<meta name="robots" content="noindex,nofollow" />';
+		}
+
+		return $meta;
+	}
+		
+	public static function getErrorMsg($state)
+	{
+		switch ($state)
+		{
+			case EE_TABLE_ERROR:
+				$msg = 'There was an error saving your form.';
+				break;
+			case EE_FORM_VALIDATION_FAILED:
+				$msg = 'Your form didn\'t validate. Please fill out all required fields.';
+				break;
+			case EE_ERROR_UNRECOVERABLE:
+				$msg = 'An unknown error occured. Please <a href="javascript:document.location.reload(true)">refresh the page</a> and try again.';
+				break;
+			default:
+				$msg = 'Unknown Error';
+				break;
+		}
+		
+		return JText::_($msg);
+	}
+
+	/**
+	 * Build a date from a time integer to the specified format
+	 *
+	 * @param   integer  $time    Time to format
+	 * @param   string   $format  Format to transform to
+	 *
+	 * @return  string  Formatted time string.
+	 *
+	 */
+	public static function getDate($time, $format = 'm/d/Y')
+	{
+		return date($format, $time);
+	}
 
 	/**
 	 * Method to format submitted form data in a nice way
@@ -33,7 +94,7 @@ abstract class EEHelper
 			// Get the element associated with this submitted field.
 			$element = $form->getField($key)->element;
 
-			if ($element)
+			if ($element && !empty($value))
 			{
 				$msg[] = '<tr bgcolor="#EAF2FA"><td colspan="2"><font style="font-family:verdana;font-size:12px;"><strong>';
 				$msg[] = $element->getAttribute('label');
@@ -46,6 +107,33 @@ abstract class EEHelper
 		$msg[] = '</tbody></td></tr></tbody></table>';
 
 		return implode($msg);
+	}
+
+	/**
+	 * Parse email template and replace the text placeholders
+	 * with information from the data array.
+	 *
+	 * @param   string  $msg   The message string to search for replacements in.
+	 * @param   array   $data  Submitted form data array
+	 *
+	 * @return  string  Formatted message string.
+	 *
+	 */
+	public static function formatEmail($msg, $data = array())
+	{	
+		preg_match_all('/{{([A-z_]*)}}/', $msg, $fields);
+
+		foreach ($fields[1] as $fieldname)
+		{
+			if (!isset($data[$fieldname]))
+			{
+				$data[$fieldname] = '';
+			}
+
+			$msg = str_replace('{{'.$fieldname.'}}', $data[$fieldname], $msg);
+		}
+
+		return self::nl2p($msg);
 	}
 
 	/**
@@ -67,19 +155,27 @@ abstract class EEHelper
 	/**
 	 * Load a module position.
 	 *
-	 * @param   string  $pos  The position to load.
+	 * @param   string  $pos    The position to load.
+	 * @param   strong  $style  The module style to apply.
 	 *
 	 * @return  HTML for the loaded module position.
 	 *
 	 */
-	public static function loadPosition($pos = null)
+	public static function loadPosition($pos = null, $style = null)
 	{
-		if ($pos === null) return false;
-
-		if (JFactory::getDocument()->countModules($pos))
+		if ($pos === null)
 		{
-			return JHtml::_('content.prepare', '{loadposition ' . $pos . '}');
+			return false;
 		}
+
+		$output = array();
+
+		foreach (JModuleHelper::getModules($pos) as $mod)
+		{
+			$output[] = JModuleHelper::renderModule($mod, array('style' => $style));
+		}
+
+		return implode($output);
 	}
 
 	/**
@@ -152,6 +248,9 @@ abstract class EEHelper
 		$app = JFactory::getApplication();
 		$active = $app->getMenu()->getActive();
 		$bodyClasses = array();
+		$option = $app->input->getWord('option');
+		$view = $app->input->getWord('view');
+		$layout = $app->input->getWord('layout', 'default');
 
 		$uriParts = explode('/', JUri::getInstance()->toString(array('path')));
 
@@ -167,6 +266,8 @@ abstract class EEHelper
 		{
 			array_push($bodyClasses, $active->alias);
 		}
+
+		array_push($bodyClasses, str_replace('com_', '', "{$option}-{$view}-{$layout}"));
 
 		return trim(implode(' ', $bodyClasses));
 	}
@@ -261,5 +362,83 @@ abstract class EEHelper
 		}
 
 		return self::$locations[$store];
+	}
+
+	/**
+	 * Get the real IP address of the user.
+	 *
+	 * @return  string  IPv4 Address
+	 */
+	public static function getRealIp()
+	{
+		foreach (self::$ipKeys as $key)
+		{
+			if (array_key_exists($key, $_SERVER))
+			{
+				$ips = explode(',', $_SERVER[$key]);
+
+				foreach ($ips as $ip)
+				{
+					$ip = trim($ip);
+
+					if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+					{
+						return $ip;
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * An array of items to unset when updating the session.
+	 *
+	 * @return  array  The items to unset.
+	 */
+	public static function unsetInSession()
+	{
+		return array('antispam', 'check');
+	}
+
+	/**
+	 * Update the session with this data.
+	 *
+	 * @param   array  $data  Data to use to update the session.
+	 *
+	 * @return  void
+	 */
+	public static function updateSessionData(array $data)
+	{
+		$session = JFactory::getSession();
+		$current = $session->get('formdata', array(), 'userdata');
+
+		foreach (self::unsetInSession() as $key)
+		{
+			// remove from submitted data
+			unset($data[$key]);
+			// remove from current session, just in case
+			unset($current[$key]);
+		}
+		
+		$session->set('formdata', array_merge($current, $data), 'userdata');
+	}
+
+	/**
+	 * Get the current session data, remove sensitive data, and return.
+	 *
+	 * @return  array  An array of session data for use in forms.
+	 */
+	public static function getSessionData()
+	{
+		$current = JFactory::getSession()->get('formdata', array(), 'userdata');
+
+		foreach (self::unsetInSession() as $key)
+		{
+			unset($current[$key]);
+		}
+
+		return $current;
 	}
 }

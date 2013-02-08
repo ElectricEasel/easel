@@ -1,6 +1,6 @@
 <?php defined('EE_PATH') or die;
 
-defined('JIMAGE_MAX_UPLOAD_WIDTH') or define('JIMAGE_MAX_UPLOAD_WIDTH', 600);
+defined('JIMAGE_MAX_UPLOAD_WIDTH') or define('JIMAGE_MAX_UPLOAD_WIDTH', 660);
 
 abstract class EEImageHelper
 {

@@ -4,7 +4,6 @@ class EEViewAdminList extends EEViewBase
 {
 	protected $form;
 	protected $items;
-	protected $state;
 	protected $pagination;
 	protected $option;
 	protected $helperName;
@@ -85,16 +84,9 @@ class EEViewAdminList extends EEViewBase
 	 */
 	public function display($tpl = null)
 	{
-		$this->state  = $this->get('State');
-		$this->items  = $this->get('Items');
 		$this->form   = $this->get('Form');
+		$this->items  = $this->get('Items');
 		$this->pagination = $this->get('Pagination');
-
-		// Check for errors.
-		if (count($errors = $this->get('Errors')))
-		{
-			throw new Exception(implode("\n", $errors));
-		}
 
 		if ($this->useUniversalViews && is_dir(JPATH_COMPONENT_ADMINISTRATOR . '/views/universal'))
 		{
@@ -106,7 +98,6 @@ class EEViewAdminList extends EEViewBase
 		}
 
 		$this->addToolbar();
-		$this->prepareDocument();
 
 		call_user_func_array(array($this->helperName, 'addSubmenu'), array(JFactory::getApplication()->input->getCmd('view', '')));
 

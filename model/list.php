@@ -4,6 +4,14 @@ jimport('joomla.application.component.modellist');
 
 abstract class EEModelList extends JModelList
 {
+	public function __construct($config = array())
+	{
+		JForm::addFormPath(JPATH_COMPONENT . '/model/forms');
+		JForm::addFieldPath(JPATH_COMPONENT . '/model/fields');
+
+		parent::__construct($config);
+	}
+
 	/**
 	 * Method to get a JDatabaseQuery object for retrieving the data set from a database.
 	 *

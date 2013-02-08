@@ -1,11 +1,10 @@
 <?php defined('EE_PATH') or die;
 
-class EEViewAdminItem extends EEViewBase
+class EEViewAdminItem extends EEViewForm
 {
 	protected $form;
 	protected $item;
 	protected $items;
-	protected $state;
 	protected $componentName;
 	protected $useUniversalViews = false;
 
@@ -46,15 +45,8 @@ class EEViewAdminItem extends EEViewBase
 	 */
 	public function display($tpl = null)
 	{
-		$this->items = $this->get('Data');
-		$this->state = $this->get('State');
 		$this->form  = $this->get('Form');
-
-		// Check for errors.
-		if (count($errors = $this->get('Errors')))
-		{
-            throw new Exception(implode("\n", $errors));
-		}
+		$this->items = $this->get('Data');
 
 		if ($this->useUniversalViews && is_dir(JPATH_COMPONENT_ADMINISTRATOR . '/views/universal'))
 		{
@@ -65,8 +57,8 @@ class EEViewAdminItem extends EEViewBase
 			$this->addTemplatePath(EE_PATH . '/layouts/component/views');
 		}
 
-		$this->prepareDocument();
 		$this->addToolbar();
+
 		parent::display($tpl);
 	}
 

@@ -46,6 +46,11 @@ class EETable extends JTable
 			$array['alias'] = EEHelper::buildAlias($array['title']);
 		}
 
+		if (!isset($array['created_time']) && !empty($array['created_time']))
+		{
+			$array['created_time'] = date('Y-m-d H:i:s');
+		}
+
 		return parent::bind($array, $ignore);
 	}
 
