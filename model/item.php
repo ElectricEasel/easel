@@ -13,6 +13,14 @@ abstract class EEModelItem extends JModelItem
 	 */
 	protected $item;
 
+	public function __construct($config = array())
+	{
+		JForm::addFormPath(JPATH_COMPONENT . '/model/forms');
+		JForm::addFieldPath(JPATH_COMPONENT . '/model/fields');
+
+		parent::__construct($config);
+	}
+
 	/**
 	 * Method to auto-populate the model state.
 	 *
