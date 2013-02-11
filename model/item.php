@@ -21,6 +21,14 @@ abstract class EEModelItem extends JModelItem
 		parent::__construct($config);
 	}
 
+	public function setItem($item)
+	{
+		if ($item instanceof stdClass)
+		{
+			$this->item = $item;
+		}
+	}
+
 	/**
 	 * Method to auto-populate the model state.
 	 *
@@ -51,15 +59,15 @@ abstract class EEModelItem extends JModelItem
 		{
 			$db = $this->getDbo();
 			$q = $this->buildQuery();
-	
+
 			$item = $db->setQuery($q)->loadObject();
-	
+
 			// We return false to stay consistent with EEModelList
 			if ($item === null)
 			{
 				$this->_item = false;
 			}
-	
+
 			$this->_item = $item;
 		}
 

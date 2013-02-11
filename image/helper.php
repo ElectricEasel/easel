@@ -11,8 +11,7 @@ abstract class EEImageHelper
 		JImage::CROP_RESIZE => array(
 			'660x450',
 			'296x242',
-			'199x160',
-			'165x130',
+			'165x90',
 			'150x150',
 			'100x80',
 			'60x60'
@@ -25,7 +24,7 @@ abstract class EEImageHelper
 	protected static $thumbFilenameFormat = '{width}x{height}_{filename}';
 
 	/**
-	 * Create a JImage resource 
+	 * Create a JImage resource
 	 *
 	 * @param   mixed  $source  A valid GD image resource link, or a file path to an image.
 	 *

@@ -13,6 +13,15 @@ abstract class EEHelper
 		'REMOTE_ADDR'
 	);
 
+	public function registerViewClasses($views, $prefix)
+	{
+		foreach ($views as $view)
+		{
+			$viewClass = ucfirst($prefix) . 'View' . ucfirst($view);
+			JLoader::register($viewClass, JPATH_COMPONENT . '/views/' . $view . '/view.html.php');
+		}
+	}
+
 	/**
 	 * When on a dev site, you don't want you site being indexed.
 	 *
@@ -29,7 +38,7 @@ abstract class EEHelper
 
 		return $meta;
 	}
-		
+
 	public static function getErrorMsg($state)
 	{
 		switch ($state)
@@ -47,7 +56,7 @@ abstract class EEHelper
 				$msg = 'Unknown Error';
 				break;
 		}
-		
+
 		return JText::_($msg);
 	}
 
@@ -120,7 +129,7 @@ abstract class EEHelper
 	 *
 	 */
 	public static function formatEmail($msg, $data = array())
-	{	
+	{
 		preg_match_all('/{{([A-z_]*)}}/', $msg, $fields);
 
 		foreach ($fields[1] as $fieldname)
@@ -325,28 +334,28 @@ abstract class EEHelper
 			{
 				$params = get_object_vars($params);
 			}
-	
+
 			if (is_array($params))
-			{	
+			{
 				$tmp = array();
-	
+
 				$tmp[] = (isset($params['address1'])) ? $params['address1'] : $params['address'];
 				$tmp[] = $params['city'];
 				$tmp[] = $params['state'];
 				$tmp[] = $params['zip'];
-							
+
 				$address = implode(',', $tmp);
 			}
 			else
 			{
 				$address = $params;
 			}
-			
+
 			$address = urlencode($address);
 			$geocode = file_get_contents("http://maps.google.com/maps/api/geocode/json?address={$address}&sensor=false");
-	
+
 			$output = json_decode($geocode);
-	
+
 			if ($geocode === false || $output === null || $output->status == 'ZERO_RESULTS')
 			{
 				$lat = 0;
@@ -357,7 +366,7 @@ abstract class EEHelper
 				$lat = $output->results[0]->geometry->location->lat;
 				$lng = $output->results[0]->geometry->location->lng;
 			}
-		
+
 			self::$locations[$store] = array('latitude' => $lat, 'longitude' => $lng);
 		}
 
@@ -421,7 +430,7 @@ abstract class EEHelper
 			// remove from current session, just in case
 			unset($current[$key]);
 		}
-		
+
 		$session->set('formdata', array_merge($current, $data), 'userdata');
 	}
 

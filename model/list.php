@@ -4,6 +4,8 @@ jimport('joomla.application.component.modellist');
 
 abstract class EEModelList extends JModelList
 {
+	protected $items = null;
+
 	public function __construct($config = array())
 	{
 		JForm::addFormPath(JPATH_COMPONENT . '/model/forms');

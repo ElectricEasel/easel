@@ -22,7 +22,7 @@ JFactory::getDocument()
 	// ]]>
 	");
 ?>
-<form action="index.php" method="post" name="adminForm" id="item-form" class="form-validate">
+<form action="index.php" method="post" name="adminForm" id="item-form" class="form-validate" enctype="multipart/form-data">
 	<div class="width-60 fltlft">
 		<?php foreach ($this->form->getFieldsets() as $fieldset) : ?>
 		<fieldset class="adminform fieldset_<?php echo $fieldset->name; ?>">
