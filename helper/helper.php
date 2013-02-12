@@ -450,4 +450,38 @@ abstract class EEHelper
 
 		return $current;
 	}
+
+	public function getYoutubeEmbedUrl($link)
+	{
+		$search = 'youtube.com/watch?v=';
+		$pos = strpos($link, $search);
+
+		if ($pos === false)
+		{
+			$search = 'youtu.be/';
+    		$pos = strpos($link, $search);
+
+    		if ($pos === false)
+    		{
+    			$search = 'youtube.com/embed/';
+    			$pos = strpos($link, $search);
+
+    			if ($pos !== false)
+				{
+					return $link;
+				}
+    		}
+    	}
+
+    	$pos = $pos + strlen($search);
+    	$needle = '';
+    	while ($pos < strlen($link))
+    	{
+    		if (in_array($link[$pos], array('/', '?', '&', '#')) ) break;
+    		$needle .= $link[$pos];
+    		$pos++;
+    	}
+
+    	return "http://www.youtube.com/embed/{$needle}?rel=0";
+	}
 }

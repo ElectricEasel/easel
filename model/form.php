@@ -20,11 +20,11 @@ abstract class EEModelForm extends JModelForm
 	public function submitForm($data = array())
 	{
 		$table	= $this->getTable();
-		
+
 		if ($this->validate($this->getForm(), $data))
 		{
 			$table->bind($data);
-		
+
 			if ($table->store(false))
 			{
 				return EE_NO_ERROR;
@@ -35,4 +35,5 @@ abstract class EEModelForm extends JModelForm
 
 		return EE_FORM_VALIDATION_FAILED;
 	}
+
 }
