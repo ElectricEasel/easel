@@ -46,7 +46,7 @@ class EEViewAdminItem extends EEViewForm
 	public function display($tpl = null)
 	{
 		$this->form  = $this->get('Form');
-		$this->items = $this->get('Data');
+		$this->items = $this->get('Items');
 
 		if ($this->useUniversalViews && is_dir(JPATH_COMPONENT_ADMINISTRATOR . '/views/universal'))
 		{
