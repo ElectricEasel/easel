@@ -13,6 +13,15 @@ abstract class EEHelper
 		'REMOTE_ADDR'
 	);
 
+	public function registerViewClasses($views, $prefix)
+	{
+		foreach ($views as $view)
+		{
+			$viewClass = ucfirst($prefix) . 'View' . ucfirst($view);
+			JLoader::register($viewClass, JPATH_COMPONENT . '/views/' . $view . '/view.html.php');
+		}
+	}
+
 	/**
 	 * When on a dev site, you don't want you site being indexed.
 	 *
