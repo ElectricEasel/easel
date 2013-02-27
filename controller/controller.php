@@ -422,12 +422,12 @@ class EEController implements JController
 	protected function createModel($name, $prefix = '', $config = array())
 	{
 		// Clean the model name
-		$modelName = preg_replace('/[^A-Z0-9_]/i', '', $name);
-		$classPrefix = preg_replace('/[^A-Z0-9_]/i', '', $prefix);
+		$modelName = strtolower(preg_replace('/[^A-Z0-9_]/i', '', $name));
+		$classPrefix = strtolower(preg_replace('/[^A-Z0-9_]/i', '', $prefix));
 
-		$result = JModelLegacy::getInstance($modelName, $classPrefix, $config);
+		$modelClass = ucfirst($classPrefix) . ucfirst($modelName);
 
-		return $result;
+		return new $modelClass($config);
 	}
 
 	/**
