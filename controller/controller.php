@@ -261,7 +261,7 @@ class EEController implements JController
 			}
 		}
 		
-		if (array_key_exists('name', $config))
+		if (isset($config['name']))
 		{
 			$this->name = $config['name'];
 		}
@@ -271,7 +271,7 @@ class EEController implements JController
 		}		
 
 		// Set a base path for use by the controller
-		if (array_key_exists('base_path', $config))
+		if (isset($config['base_path']))
 		{
 			$this->basePath = $config['base_path'];
 		}
@@ -281,7 +281,7 @@ class EEController implements JController
 		}
 
 		// If the default task is set, register it as such
-		if (array_key_exists('default_task', $config))
+		if (isset($config['default_task']))
 		{
 			$this->registerDefaultTask($config['default_task']);
 		}
@@ -290,26 +290,23 @@ class EEController implements JController
 			$this->registerDefaultTask('display');
 		}
 
-		// Set the models prefix
-		if (empty($this->model_prefix))
+		// Set the models prefix		
+		if (isset($config['model_prefix']))
 		{
-			if (array_key_exists('model_prefix', $config))
-			{
-				// User-defined prefix
-				$this->model_prefix = $config['model_prefix'];
-			}
-			else
-			{
-				$this->model_prefix = $this->name . 'Model';
-			}
+			// User-defined prefix
+			$this->model_prefix = $config['model_prefix'];
 		}
+		else
+		{
+			$this->model_prefix = $this->name . 'Model';
+		}		
 
 		// Set the default view.
-		if (array_key_exists('default_view', $config))
+		if (isset($config['default_view']))
 		{
 			$this->default_view = $config['default_view'];
 		}
-		elseif (empty($this->default_view))
+		else
 		{
 			$this->default_view = $this->getName();
 		}
