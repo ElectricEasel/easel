@@ -136,8 +136,9 @@ class EEController implements JController
 	 * Run the component. This is syntactic sugar for the
 	 * execute and redirect methods.
 	 *
-	 * @return  void
+	 * @param   string  $prefix  This controller prefix.
 	 *
+	 * @return  void
 	 */
 	public function run($prefix = null)
 	{
@@ -156,7 +157,7 @@ class EEController implements JController
 	 * @param   string  $prefix  The prefix for the controller.
 	 * @param   array   $config  An array of optional constructor options.
 	 *
-	 * @return  JControllerLegacy
+	 * @return  JController
 	 *
 	 * @since   12.2
 	 * @throws  Exception if the controller cannot be loaded.
@@ -180,28 +181,28 @@ class EEController implements JController
 			}
 
 			// Get the controller class name.
-			$class = ucfirst($prefix) . 'Controller' . ucfirst($type);
+			$controllerClass = ucfirst($prefix) . 'Controller' . ucfirst($type);
 
 			// Check for a format specific class, otherwise, fallback to base class.
 			if (!empty($format))
 			{
-				$formatClass = $class . ucfirst(strtolower($format));
+				$formatClass = $controllerClass . ucfirst(strtolower($format));
 
 				if (class_exists($formatClass))
 				{
-					$class = $formatClass;
+					$controllerClass = $formatClass;
 				}
 			}
 			else
 			{
 				// We only deal with autoloadable classes
-				if (!class_exists($class))
+				if (!class_exists($controllerClass))
 				{
 					throw new InvalidArgumentException(JText::sprintf('JLIB_APPLICATION_ERROR_INVALID_CONTROLLER', $type, $format));
 				}
 			}
 
-			self::$instance = new $class($config);
+			self::$instance = new $controllerClass($config);
 		}
 
 		return self::$instance;
@@ -439,7 +440,7 @@ class EEController implements JController
 	 *
 	 * @param   string  $name    The name of the view.
 	 * @param   string  $prefix  Optional prefix for the view class name.
-	 * @param   string  $type    The type of view.
+	 * @param   string  $format  The type of view.
 	 * @param   array   $config  Configuration array for the view. Optional.
 	 *
 	 * @return  mixed  View object on success; null or error result on failure.
@@ -448,37 +449,35 @@ class EEController implements JController
 	 * @note    Replaces _createView.
 	 * @throws  Exception
 	 */
-	protected function createView($name, $prefix = '', $type = '', $config = array())
+	protected function createView($name, $prefix = '', $format = '', $config = array())
 	{
 		// Clean the view name
-		$viewName = preg_replace('/[^A-Z0-9_]/i', '', $name);
-		$classPrefix = preg_replace('/[^A-Z0-9_]/i', '', $prefix);
-		$viewType = preg_replace('/[^A-Z0-9_]/i', '', $type);
+		$name = strtolower(preg_replace('/[^A-Z0-9_]/i', '', $name));
+		$prefix = strtolower(preg_replace('/[^A-Z0-9_]/i', '', $prefix));
+		$format = strtolower(preg_replace('/[^A-Z0-9_]/i', '', $format));
 
 		// Build the view class name
-		$viewClass = $classPrefix . $viewName;
+		$viewClass = ucfirst($prefix) . ucfirst($name);
 
-		if (!class_exists($viewClass))
+		// Try to load a format specific class.
+		if (!empty($format))
 		{
-			jimport('joomla.filesystem.path');
-			$path = JPath::find($this->paths['view'], $this->createFileName('view', array('name' => $viewName, 'type' => $viewType)));
+			$formatClass = $viewClass . ucfirst($format);
 
-			if ($path)
+			if (class_exists($formatClass))
 			{
-				require_once $path;
-
-				if (!class_exists($viewClass))
-				{
-					throw new Exception(JText::sprintf('JLIB_APPLICATION_ERROR_VIEW_CLASS_NOT_FOUND', $viewClass, $path), 500);
-				}
-			}
-			else
-			{
-				return null;
+				return new $formatClass($config);
 			}
 		}
 
-		return new $viewClass($config);
+		// We only deal with autoloadable view classes.
+		if (class_exists($viewClass))
+		{
+			return new $viewClass($config);
+		}
+
+		// We've tried all we can, bail.
+		throw new Exception(JText::sprintf('JLIB_APPLICATION_ERROR_VIEW_CLASS_NOT_FOUND', $viewClass, $path), 500);
 	}
 
 	/**
@@ -669,13 +668,17 @@ class EEController implements JController
 	{
 		if (empty($this->name))
 		{
-			$r = null;
+			$classname = get_class($this);
 
-			if (!preg_match('/(.*)Controller/i', get_class($this), $r))
+			$controllerPos = strpos($classname, 'Controller');
+
+			// You HAVE to have "Controller" in your controller name.
+			if ($controllerPos === false)
 			{
-				throw new Exception(JText::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'), 500);
+				throw new Exception('Could not discover controller name.', 500);
 			}
-			$this->name = strtolower($r[1]);
+
+			$this->name = strtolower(substr($classname, ($controllerPos + 10)));
 		}
 
 		return $this->name;
@@ -973,4 +976,3 @@ class EEController implements JController
 		return $this;
 	}
 }
-
