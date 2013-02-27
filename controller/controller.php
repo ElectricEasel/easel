@@ -198,7 +198,13 @@ class EEController implements JController
 				// We only deal with autoloadable classes
 				if (!class_exists($controllerClass))
 				{
-					throw new InvalidArgumentException(JText::sprintf('JLIB_APPLICATION_ERROR_INVALID_CONTROLLER', $type, $format));
+					$task = $this->input->get('task');
+					if (in_array($task, get_class_methods('EEControllerAdmin')))
+						$controllerClass = 'EEControllerAdmin';
+					elseif (in_array($task, get_class_methods('EEControllerForm')))
+						$controllerClass = 'EEControllerForm';
+					else
+						$controllerClass = 'EEController';
 				}
 			}
 
@@ -254,19 +260,15 @@ class EEController implements JController
 				$this->taskMap[strtolower($mName)] = $mName;
 			}
 		}
-
-		// Set the controller name
-		if (empty($this->name))
+		
+		if (array_key_exists('name', $config))
 		{
-			if (array_key_exists('name', $config))
-			{
-				$this->name = $config['name'];
-			}
-			else
-			{
-				$this->name = $this->getName();
-			}
+			$this->name = $config['name'];
 		}
+		else
+		{
+			$this->name = $this->getName();
+		}		
 
 		// Set a base path for use by the controller
 		if (array_key_exists('base_path', $config))
