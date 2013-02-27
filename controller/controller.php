@@ -428,7 +428,10 @@ class EEController implements JController
 		$classPrefix = strtolower(preg_replace('/[^A-Z0-9_]/i', '', $prefix));
 
 		$modelClass = ucfirst($classPrefix) . ucfirst($modelName);
-
+		if (!class_exists($modelClass)) 
+		{
+			//TODO: Need to find a a way to use EEModelItem, EEModelForm, EEModeldAdmin or EEModelList 	
+		} 
 		return new $modelClass($config);
 	}
 
@@ -473,13 +476,12 @@ class EEController implements JController
 		}
 
 		// We only deal with autoloadable view classes.
-		if (class_exists($viewClass))
+		if (!class_exists($viewClass))
 		{
-			return new $viewClass($config);
+			//Fallback to default view class EEViewItem, EEViewForm.......	
 		}
-
-		// We've tried all we can, bail.
-		throw new Exception(JText::sprintf('JLIB_APPLICATION_ERROR_VIEW_CLASS_NOT_FOUND', $viewClass, $path), 500);
+		
+		return new $viewClass($config);		
 	}
 
 	/**
