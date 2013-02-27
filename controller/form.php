@@ -54,24 +54,31 @@ class EEControllerForm extends EEController
 	public function __construct($config = array())
 	{
 		parent::__construct($config);
-
-		// Guess the option as com_NameOfController
-		if (empty($this->option))
+		
+		if (isset($config['option']))
 		{
+			$this->option = $config['option'];	
+		} else 
+		{
+			// Guess the option as com_NameOfController
 			$this->option = 'com_' . strtolower($this->getName());
 		}
 
-		// Guess the JText message prefix. Defaults to the option.
-		if (empty($this->text_prefix))
+		if (isset($config['text_prefix']))
+		{
+			$this->text_prefix = $config['text_prefix'];
+		} else
 		{
 			$this->text_prefix = strtoupper($this->option);
 		}
-
-		// Guess the context as the suffix, eg: OptionControllerContent.
-		if (empty($this->context))
+		
+		if (isset($config['context']))
+		{
+			$this->context = $config['context'];
+		} else
 		{
 			$r = null;
-
+			
 			if (!preg_match('/(.*)Controller(.*)/i', get_class($this), $r))
 			{
 				throw new Exception(JText::_('JLIB_APPLICATION_ERROR_CONTROLLER_GET_NAME'), 500);
@@ -79,39 +86,23 @@ class EEControllerForm extends EEController
 			$this->context = strtolower($r[2]);
 		}
 
-		// Guess the item view as the context.
-		if (empty($this->view_item))
+		if (isset($config['view_item']))
 		{
+			$this->view_item = $config['view_item'];
+		} else
+		{
+			// Guess the item view as the context.
 			$this->view_item = $this->context;
-		}
+		}				
 
-		// Guess the list view as the plural of the item view.
-		if (empty($this->view_list))
+		if ($config['view_list']) 
 		{
-			// @TODO Probably worth moving to an inflector class based on
-			// http://kuwamoto.org/2007/12/17/improved-pluralizing-in-php-actionscript-and-ror/
-
-			// Simple pluralisation based on public domain snippet by Paul Osman
-			// For more complex types, just manually set the variable in your class.
-			$plural = array(
-				array('/(x|ch|ss|sh)$/i', "$1es"),
-				array('/([^aeiouy]|qu)y$/i', "$1ies"),
-				array('/([^aeiouy]|qu)ies$/i', "$1y"),
-				array('/(bu)s$/i', "$1ses"),
-				array('/s$/i', "s"),
-				array('/$/', "s"));
-
-			// Check for matches using regular expressions
-			foreach ($plural as $pattern)
-			{
-				if (preg_match($pattern[0], $this->view_item))
-				{
-					$this->view_list = preg_replace($pattern[0], $pattern[1], $this->view_item);
-					break;
-				}
-			}
-		}
-
+			$this->view_list = $config['view_list'];
+		} else 
+		{
+			$this->view_list = JStringInflector::getInstance()->toPlural($this->view_item);
+		}			
+				
 		// Apply, Save & New, and Save As copy should be standard on forms.
 		$this->registerTask('apply', 'save');
 		$this->registerTask('save2new', 'save');
