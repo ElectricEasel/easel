@@ -198,7 +198,13 @@ class EEController implements JController
 				// We only deal with autoloadable classes
 				if (!class_exists($controllerClass))
 				{
-					throw new InvalidArgumentException(JText::sprintf('JLIB_APPLICATION_ERROR_INVALID_CONTROLLER', $type, $format));
+					$task = $this->input->get('task');
+					if (in_array($task, get_class_methods('EEControllerAdmin')))
+						$controllerClass = 'EEControllerAdmin';
+					elseif (in_array($task, get_class_methods('EEControllerForm')))
+						$controllerClass = 'EEControllerForm';
+					else
+						$controllerClass = 'EEController';
 				}
 			}
 
@@ -235,7 +241,7 @@ class EEController implements JController
 		$this->input = $this->app->input;
 
 		// Determine the methods to exclude from the base class.
-		$xMethods = get_class_methods('JControllerLegacy');
+		$xMethods = get_class_methods('EEController');
 
 		// Get the public methods in this class using reflection.
 		$r = new ReflectionClass($this);
@@ -254,22 +260,18 @@ class EEController implements JController
 				$this->taskMap[strtolower($mName)] = $mName;
 			}
 		}
-
-		// Set the view name
-		if (empty($this->name))
+		
+		if (isset($config['name']))
 		{
-			if (array_key_exists('name', $config))
-			{
-				$this->name = $config['name'];
-			}
-			else
-			{
-				$this->name = $this->getName();
-			}
+			$this->name = $config['name'];
 		}
+		else
+		{
+			$this->name = $this->getName();
+		}		
 
 		// Set a base path for use by the controller
-		if (array_key_exists('base_path', $config))
+		if (isset($config['base_path']))
 		{
 			$this->basePath = $config['base_path'];
 		}
@@ -279,7 +281,7 @@ class EEController implements JController
 		}
 
 		// If the default task is set, register it as such
-		if (array_key_exists('default_task', $config))
+		if (isset($config['default_task']))
 		{
 			$this->registerDefaultTask($config['default_task']);
 		}
@@ -288,26 +290,23 @@ class EEController implements JController
 			$this->registerDefaultTask('display');
 		}
 
-		// Set the models prefix
-		if (empty($this->model_prefix))
+		// Set the models prefix		
+		if (isset($config['model_prefix']))
 		{
-			if (array_key_exists('model_prefix', $config))
-			{
-				// User-defined prefix
-				$this->model_prefix = $config['model_prefix'];
-			}
-			else
-			{
-				$this->model_prefix = $this->name . 'Model';
-			}
+			// User-defined prefix
+			$this->model_prefix = $config['model_prefix'];
 		}
+		else
+		{
+			$this->model_prefix = $this->name . 'Model';
+		}		
 
 		// Set the default view.
-		if (array_key_exists('default_view', $config))
+		if (isset($config['default_view']))
 		{
 			$this->default_view = $config['default_view'];
 		}
-		elseif (empty($this->default_view))
+		else
 		{
 			$this->default_view = $this->getName();
 		}
@@ -426,7 +425,10 @@ class EEController implements JController
 		$classPrefix = strtolower(preg_replace('/[^A-Z0-9_]/i', '', $prefix));
 
 		$modelClass = ucfirst($classPrefix) . ucfirst($modelName);
-
+		if (!class_exists($modelClass)) 
+		{
+			//TODO: Need to find a a way to use EEModelItem, EEModelForm, EEModeldAdmin or EEModelList 	
+		} 
 		return new $modelClass($config);
 	}
 
@@ -471,13 +473,12 @@ class EEController implements JController
 		}
 
 		// We only deal with autoloadable view classes.
-		if (class_exists($viewClass))
+		if (!class_exists($viewClass))
 		{
-			return new $viewClass($config);
+			//Fallback to default view class EEViewItem, EEViewForm.......	
 		}
-
-		// We've tried all we can, bail.
-		throw new Exception(JText::sprintf('JLIB_APPLICATION_ERROR_VIEW_CLASS_NOT_FOUND', $viewClass, $path), 500);
+		
+		return new $viewClass($config);		
 	}
 
 	/**
