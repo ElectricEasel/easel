@@ -235,7 +235,7 @@ class EEController implements JController
 		$this->input = $this->app->input;
 
 		// Determine the methods to exclude from the base class.
-		$xMethods = get_class_methods('JControllerLegacy');
+		$xMethods = get_class_methods('EEController');
 
 		// Get the public methods in this class using reflection.
 		$r = new ReflectionClass($this);
@@ -255,7 +255,7 @@ class EEController implements JController
 			}
 		}
 
-		// Set the view name
+		// Set the controller name
 		if (empty($this->name))
 		{
 			if (array_key_exists('name', $config))
